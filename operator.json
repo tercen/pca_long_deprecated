@@ -1,0 +1,54 @@
+{
+  "name": "PCA",
+  "description": "Principal Components Analysis: Performs dimentionality reduction by calulating the most variables with the most variance, and expressing this a smaller set of new variables called components.",
+  "tags": ["multivariate statistics"],
+  "authors": ["tercen"],
+  "urls": ["https://github.com/tercen/pca_operator"],
+  "properties": [
+  {
+    "kind": "BooleanProperty",
+    "name": "scale",
+    "defaultValue": false,
+    "description": "A logical value indicating whether the variables should be scaled to have unit variance before the analysis takes place."
+  },
+  {
+    "kind": "BooleanProperty",
+    "name": "center",
+    "defaultValue": true,
+    "description": "A logical value indicating whether the variables should be shifted to be zero centered."
+  },  {
+    "kind": "EnumeratedProperty",
+    "name": "input.convention",
+    "defaultValue": "observations.in.columns",
+    "values": [
+      "observations.in.columns",
+      "observations.in.rows"
+    ],
+    "description": "A text string indicating if the rows in the Tercen crosstab should be treated as observations or variables."
+  },
+  {
+    "kind": "EnumeratedProperty",
+    "name": "na.action",
+    "defaultValue": "na.omit",
+    "values": [
+      "na.fail",
+      "na.omit"
+    ],
+    "description": "A function which indicates what should happen when the data contain NAs."
+  },
+  {
+    "kind": "DoubleProperty",
+    "name": "tol",
+    "defaultValue": 0,
+    "description": "A value indicating the magnitude below which components should be omitted. Components are omitted if their standard deviations are less than or equal to tol times the standard deviation of the first component."
+  },
+  {
+    "kind": "DoubleProperty",
+    "name": "maxComp",
+    "defaultValue": 5,
+    "description": "Max number of components"
+  }
+]
+}
+
+
