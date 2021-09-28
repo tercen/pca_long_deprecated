@@ -20,38 +20,49 @@ aPca = data.matrix %>% prcomp(scale = scale, center = center, tol = tol)
 
 maxComp = if (maxComp > 0){ min(maxComp, nrow(aPca$rotation)) } else { nrow(aPca$rotation) }
 
-eigenRelation = tibble(pc.eigen.values = aPca$sdev^2) %>% 
-  mutate(var_explained = .$pc.eigen.values / sum(.$pc.eigen.values))%>% 
-  mutate(PC = sprintf(paste0("PC%0", nchar(as.character(nrow(.))), "d"), 1:nrow(.))) %>%  # pad left with 0 to ensure alphabetic order
+npc = length(aPca$sdev)
+# pad left pc names with 0 to ensure alphabetic order
+pcRelation = tibble(PC = sprintf(paste0("PC%0", nchar(as.character(npc)), "d"), 1:npc)) %>%
   ctx$addNamespace() %>%
   as_relation()
 
-loadingRelation = aPca$rotation[,1:maxComp] %>% as_tibble() %>% 
-  setNames(0:(ncol(.)-1)) %>%  
+eigenRelation = tibble(pc.eigen.values = aPca$sdev^2) %>% 
+  mutate(var_explained = .$pc.eigen.values / sum(.$pc.eigen.values))%>% 
+  ctx$addNamespace() %>%
+  as_relation()
+
+loadingRelation = aPca$rotation[,1:maxComp] %>%
+  as_tibble() %>%
+  setNames(0:(ncol(.)-1)) %>%
   pivot_longer(everything(),
-               names_to = ".pc.eigen.values.rids",
+               names_to = ".pc.rids",
                values_to = "pc.loading",
-               names_transform=list(.pc.eigen.values.rids=as.integer)) %>% 
+               names_transform=list(.pc.rids=as.integer)) %>%
   ctx$addNamespace() %>%
   as_relation()
 
 scoresRelation = aPca$x[,1:maxComp] %>%
   as_tibble() %>%
-  setNames(0:(ncol(.)-1)) %>%  
-  mutate(.i=0:(nrow(.)-1)) %>% 
+  setNames(0:(ncol(.)-1)) %>%
+  mutate(.i=0:(nrow(.)-1)) %>%
   pivot_longer(-.i,
-               names_to = ".pc.eigen.values.rids",
+               names_to = ".pc.rids",
                values_to = "pc.value",
-               names_transform=list(.pc.eigen.values.rids=as.integer)) %>% 
-  ctx$addNamespace() %>% 
+               names_transform=list(.pc.rids=as.integer)) %>%
+  ctx$addNamespace() %>%
   as_relation() %>%
   left_join_relation(rowOrColumnRelation,
                      ".i",
                      rowOrColumnRelation$rids)
 
-# link all 3 relation into one and save 
-eigenRelation %>%
-  left_join_relation(loadingRelation, eigenRelation$rids, ".pc.eigen.values.rids") %>%
-  left_join_relation(scoresRelation, eigenRelation$rids, ".pc.eigen.values.rids")  %>% 
+# link all 4 relation into one and save 
+pcRelation %>%
+  left_join_relation(scoresRelation, pcRelation$rids, ".pc.rids")  %>%
+  left_join_relation(loadingRelation, pcRelation$rids, ".pc.rids") %>%
+  left_join_relation(eigenRelation, pcRelation$rids, eigenRelation$rids) %>%
   as_join_operator(names, names) %>%
   save_relation(ctx)
+
+
+
+
